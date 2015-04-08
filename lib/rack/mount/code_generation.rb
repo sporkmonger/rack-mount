@@ -35,12 +35,20 @@ module Rack::Mount
           body << 'params = route.defaults.dup'
 
           conditions = []
-          route.conditions.each do |method, condition|
+          route.conditions.each do |(method, condition)|
             b = []
-            if condition.is_a?(Regexp)
-              b << "value = obj.#{method}"
-              b << "if value.respond_to?(:match) && m = value.match(#{condition.inspect})"
-              b << "matches[:#{method}] = m"
+            if condition.is_a?(Regexp) || condition.respond_to?(:match)
+              if condition.is_a?(Regexp)
+                b << "if m = #{condition.inspect}.match(obj.#{method})"
+                b << "matches[:#{method}] = m"
+              elsif condition.class.instance_method(:match).arity == 1 ||
+                  condition.class.instance_method(:match).arity <= -1
+                b << "condition = route.conditions[#{method.inspect}]"
+                b << "if m = condition.match(obj.#{method})"
+                b << "matches[:#{method}] = m"
+              else
+                raise 'unexpected arity for condition\'s :match method'
+              end
               if (named_captures = route.named_captures[method]) && named_captures.any?
                 b << 'captures = m.captures'
                 b << 'p = nil'
