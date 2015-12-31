@@ -34,3 +34,7 @@ The API is extremely minimal and only 3 methods are exposed as the public API.
 
   # generate path for route named "foo"
   Routes.generate(:path_info, :foo) #=> "/foo"
+
+=== License
+
+Made available under the MIT license. See LICENSE.txt in this directory.
